@@ -235,6 +235,11 @@ else
     private bool esError = false;
     private Pedido? pedidoAEliminar;
 
+    private static readonly HashSet<string> CategoriasPapeleria = new(StringComparer.OrdinalIgnoreCase)
+{
+    "Librería", "Papelería"
+};
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -246,21 +251,29 @@ else
         {
             mensaje = $"Error de BD: {ex.Message}";
             esError = true;
-            pedidos = new List<Pedido>();   // evita que quede en null → spinner infinito
+            pedidos = new List<Pedido>();
             clientes = new List<Cliente>();
         }
 
-        // La API no depende de Azure, carga aparte
         try
         {
-            todosProductos = await ApiSvc.GetProductosAsync();
+            var resultado = await ApiSvc.GetProductosAsync();
+            todosProductos = resultado?
+                .Where(p => p.Categoria != null && CategoriasPapeleria.Contains(p.Categoria))
+                .ToList();
+
             productosApi = todosProductos;
-            categorias = await ApiSvc.GetCategoriasAsync();
+            categorias = todosProductos?
+                .Where(p => p.CategoriaId > 0 && p.Categoria != null)
+                .GroupBy(p => p.CategoriaId)
+                .Select(g => new CategoriaApi
+                {
+                    Id = g.Key,
+                    Nombre = g.First().Categoria!
+                })
+                .ToList();
         }
-        catch
-        {
-            // API no disponible, no es crítico
-        }
+        catch { }
 
         cargandoProductos = false;
     }
@@ -322,7 +335,10 @@ else
         if (int.TryParse(val, out int catId))
         {
             cargandoProductos = true;
-            productosApi = await ApiSvc.GetProductosPorCategoriaAsync(catId) ?? new();
+            var resultado = await ApiSvc.GetProductosPorCategoriaAsync(catId);
+            productosApi = resultado?
+                .Where(p => p.Categoria != null && CategoriasPapeleria.Contains(p.Categoria))
+                .ToList() ?? new List<ProductoApi>();
             cargandoProductos = false;
         }
     }
