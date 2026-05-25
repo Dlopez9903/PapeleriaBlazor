@@ -10,7 +10,6 @@ public class ClienteService
 
     public ClienteService(PapeleriaDbContext db) => _db = db;
 
-    // ── READ ───────────────────────────────────────────────────────────────
     public async Task<List<Cliente>> GetTodosAsync()
         => await _db.Clientes.OrderByDescending(c => c.FechaRegistro).ToListAsync();
 
