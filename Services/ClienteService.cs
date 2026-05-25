@@ -26,7 +26,6 @@ public class ClienteService
         await _db.SaveChangesAsync();
     }
 
-    // ── UPDATE ─────────────────────────────────────────────────────────────
     public async Task ActualizarAsync(Cliente cliente)
     {
         _db.Clientes.Update(cliente);
