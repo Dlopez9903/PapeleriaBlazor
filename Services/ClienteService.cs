@@ -32,11 +32,7 @@ public class ClienteService
         await _db.SaveChangesAsync();
     }
 
-    // ── DELETE ─────────────────────────────────────────────────────────────
-    /// <summary>
-    /// Verifica si el cliente tiene pedidos antes de eliminar.
-    /// Si tiene pedidos, lanza excepción con mensaje amigable.
-    /// </summary>
+
     public async Task EliminarAsync(int id)
     {
         // Solo bloquea si tiene pedidos Pendientes — Entregados y Cancelados sí permiten eliminar
