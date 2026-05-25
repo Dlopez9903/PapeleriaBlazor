@@ -16,7 +16,6 @@ public class PapeleriaDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // ── Cliente ────────────────────────────────────────────────────────
         modelBuilder.Entity<Cliente>(e =>
         {
             e.ToTable("Clientes");
