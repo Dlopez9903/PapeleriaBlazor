@@ -19,7 +19,6 @@ public class ClienteService
     public async Task<int> ContarAsync()
         => await _db.Clientes.CountAsync();
 
-    // ── CREATE ─────────────────────────────────────────────────────────────
     public async Task AgregarAsync(Cliente cliente)
     {
         cliente.FechaRegistro = DateTime.Now;
