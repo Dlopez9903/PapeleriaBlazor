@@ -25,7 +25,6 @@ public class PapeleriaDbContext : DbContext
             e.Property(c => c.Telefono).IsRequired().HasMaxLength(15);
         });
 
-        // ── Pedido ─────────────────────────────────────────────────────────
         modelBuilder.Entity<Pedido>(e =>
         {
             e.ToTable("Pedidos");
