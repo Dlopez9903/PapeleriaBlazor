@@ -35,7 +35,6 @@ public class ClienteService
 
     public async Task EliminarAsync(int id)
     {
-        // Solo bloquea si tiene pedidos Pendientes — Entregados y Cancelados sí permiten eliminar
         var tienePedidosPendientes = await _db.Pedidos
             .AnyAsync(p => p.ClienteId == id && p.Estado == "Pendiente");
 
