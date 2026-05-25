@@ -38,7 +38,6 @@ public class PapeleriaDbContext : DbContext
              .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // ── DetallePedido ──────────────────────────────────────────────────
         modelBuilder.Entity<DetallePedido>(e =>
         {
             e.ToTable("DetallesPedido");
