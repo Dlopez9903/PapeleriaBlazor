@@ -3,18 +3,37 @@
 @using PapeleriaBlazor.Models
 @inject DashboardService DashboardSvc
 @inject ApiComercioService ApiSvc
+@inject PedidoService PedidoSvc
 
 <PageTitle>Inicio — El Lápiz Feliz</PageTitle>
 
-<div class="page-header">
-    <div class="page-title-area">
-        <h1 class="page-title">Dashboard</h1>
-        <p class="page-subtitle">Bienvenido al sistema de gestión</p>
+<!-- ── Bienvenida ──────────────────────────────────────────────── -->
+<div class="welcome-banner">
+    <div class="welcome-left">
+        <div class="welcome-icon">✏️</div>
+        <div>
+            <h1 class="welcome-title">El Lápiz Feliz</h1>
+            <p class="welcome-desc">
+                Sistema de gestión para papelería — control de clientes,
+                pedidos y catálogo de productos en un solo lugar.
+            </p>
+            <div class="welcome-badges">
+                <span class="badge badge-amber">Papelería</span>
+                <span class="badge badge-teal">Sistema de Gestión</span>
+                <span class="badge @(apiConectada ? "badge-green" : "badge-red")">
+                    @(apiConectada ? "✅ API conectada" : "⚠️ API sin conexión")
+                </span>
+            </div>
+        </div>
     </div>
-    <div class="header-date">@DateTime.Now.ToString("dddd, dd 'de' MMMM yyyy", new System.Globalization.CultureInfo("es-MX"))</div>
+    <div class="welcome-date">
+        <div class="date-day">@DateTime.Now.ToString("dd")</div>
+        <div class="date-month">@DateTime.Now.ToString("MMMM yyyy", new System.Globalization.CultureInfo("es-MX"))</div>
+        <div class="date-weekday">@DateTime.Now.ToString("dddd", new System.Globalization.CultureInfo("es-MX"))</div>
+    </div>
 </div>
 
-<!-- ── Tarjetas de estadísticas ─────────────────────────────────────── -->
+<!-- ── Tarjetas de estadísticas ─────────────────────────────────── -->
 @if (stats == null)
 {
     <div class="loading-state">
@@ -61,11 +80,15 @@ else
             </div>
         </div>
 
-        <!-- Dato de la API -->
         <div class="stat-card stat-purple">
             <div class="stat-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
             <div class="stat-info">
-                @if (totalProductosApi == null)
+                @if (totalProductosApi == null && !apiConectada)
+                {
+                    <div class="stat-value">—</div>
+                    <div class="stat-label">API sin conexión</div>
+                }
+                else if (totalProductosApi == null)
                 {
                     <div class="stat-value">...</div>
                     <div class="stat-label">Cargando catálogo...</div>
@@ -81,58 +104,128 @@ else
     </div>
 }
 
-<!-- ── Accesos rápidos ──────────────────────────────────────────────── -->
-<div class="quick-access">
-    <h2 class="section-title">Acceso rápido</h2>
-    <div class="quick-grid">
-        <a href="catalogo" class="quick-card">
-            <i class="fa-solid fa-boxes-stacked"></i>
-            <span>Ver Catálogo</span>
-            <small>Productos disponibles</small>
-        </a>
-        <a href="clientes" class="quick-card">
-            <i class="fa-solid fa-user-plus"></i>
-            <span>Gestión Clientes</span>
-            <small>Alta, edición y baja</small>
-        </a>
-        <a href="pedidos" class="quick-card">
-            <i class="fa-solid fa-file-invoice"></i>
-            <span>Nuevo Pedido</span>
-            <small>Registrar operación</small>
-        </a>
+<!-- ── Fila inferior: accesos rápidos + pedidos recientes ────────── -->
+<div class="dashboard-bottom">
+
+    <!-- Accesos rápidos -->
+    <div class="dashboard-left">
+        <h2 class="section-title">Acceso rápido</h2>
+        <div class="quick-grid-vertical">
+            <a href="catalogo" class="quick-card">
+                <i class="fa-solid fa-boxes-stacked"></i>
+                <div>
+                    <span>Ver Catálogo</span>
+                    <small>Productos disponibles</small>
+                </div>
+            </a>
+            <a href="clientes" class="quick-card">
+                <i class="fa-solid fa-user-plus"></i>
+                <div>
+                    <span>Gestión Clientes</span>
+                    <small>Alta, edición y baja</small>
+                </div>
+            </a>
+            <a href="pedidos" class="quick-card">
+                <i class="fa-solid fa-file-invoice"></i>
+                <div>
+                    <span>Nuevo Pedido</span>
+                    <small>Registrar operación</small>
+                </div>
+            </a>
+        </div>
     </div>
+
+    <!-- Pedidos recientes -->
+    <div class="dashboard-right">
+        <h2 class="section-title">Pedidos recientes</h2>
+        @if (pedidosRecientes == null)
+        {
+            <div class="loading-state" style="padding:20px">
+                <div class="spinner"></div>
+            </div>
+        }
+        else if (pedidosRecientes.Count == 0)
+        {
+            <div class="empty-state" style="padding:30px">
+                <i class="fa-solid fa-inbox"></i>
+                <p>Sin pedidos registrados aún.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in pedidosRecientes)
+                        {
+                            <tr>
+                                <td><span class="id-badge">@p.Id</span></td>
+                                <td><strong>@p.Cliente?.Nombre</strong></td>
+                                <td>$@p.Total.ToString("N2")</td>
+                                <td>
+                                    <span class="estado-badge @GetEstadoClass(p.Estado)">
+                                        @p.Estado
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <a href="pedidos" class="ver-todos-link">Ver todos los pedidos →</a>
+        }
+    </div>
+
 </div>
 
-<!-- ── Mensaje de error API ─────────────────────────────────────────── -->
-@if (apiError)
-{
-    <div class="alert alert-warning">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        No se pudo conectar con la API del catálogo. El sistema opera normalmente con los datos locales.
-    </div>
-}
-
 @code {
+    private static readonly HashSet<string> CategoriasPapeleria = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Librería", "Papelería"
+    };
+
     private DashboardStats? stats;
     private int? totalProductosApi;
-    private bool apiError = false;
-
-    private static readonly HashSet<string> CategoriasPapeleria = new(StringComparer.OrdinalIgnoreCase)
-{
-    "Librería", "Papelería"
-};
+    private bool apiConectada = true;
+    private List<Pedido>? pedidosRecientes;
 
     protected override async Task OnInitializedAsync()
     {
         // Datos de BD propia
         stats = await DashboardSvc.GetStatsAsync();
 
-        // Dato de la API (solo productos de papelería)
+        // Últimos 5 pedidos
+        try
+        {
+            var todos = await PedidoSvc.GetTodosAsync();
+            pedidosRecientes = todos.Take(5).ToList();
+        }
+        catch
+        {
+            pedidosRecientes = new List<Pedido>();
+        }
+
+        // Dato de la API
         var productos = await ApiSvc.GetProductosAsync();
         if (productos != null)
             totalProductosApi = productos
                 .Count(p => p.Categoria != null && CategoriasPapeleria.Contains(p.Categoria));
         else
-            apiError = true;
+            apiConectada = false;
     }
+
+    private string GetEstadoClass(string estado) => estado switch
+    {
+        "Entregado" => "estado-green",
+        "Cancelado" => "estado-red",
+        _ => "estado-amber"
+    };
 }
