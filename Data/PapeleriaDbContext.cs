@@ -32,7 +32,6 @@ public class PapeleriaDbContext : DbContext
             e.Property(p => p.Total).HasColumnType("decimal(10,2)");
             e.Property(p => p.Estado).HasMaxLength(50).HasDefaultValue("Pendiente");
 
-            // Un cliente tiene muchos pedidos; si se elimina el cliente → restrict
             e.HasOne(p => p.Cliente)
              .WithMany(c => c.Pedidos)
              .HasForeignKey(p => p.ClienteId)
