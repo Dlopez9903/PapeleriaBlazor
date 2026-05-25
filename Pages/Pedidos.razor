@@ -237,16 +237,47 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarPedidos();
-        clientes      = await ClienteSvc.GetTodosAsync();
-        todosProductos = await ApiSvc.GetProductosAsync();
-        productosApi  = todosProductos;
-        categorias    = await ApiSvc.GetCategoriasAsync();
+        try
+        {
+            await CargarPedidos();
+            clientes = await ClienteSvc.GetTodosAsync();
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"Error de BD: {ex.Message}";
+            esError = true;
+            pedidos = new List<Pedido>();   // evita que quede en null → spinner infinito
+            clientes = new List<Cliente>();
+        }
+
+        // La API no depende de Azure, carga aparte
+        try
+        {
+            todosProductos = await ApiSvc.GetProductosAsync();
+            productosApi = todosProductos;
+            categorias = await ApiSvc.GetCategoriasAsync();
+        }
+        catch
+        {
+            // API no disponible, no es crítico
+        }
+
         cargandoProductos = false;
     }
 
     private async Task CargarPedidos()
-        => pedidos = await PedidoSvc.GetTodosAsync();
+    {
+        try
+        {
+            pedidos = await PedidoSvc.GetTodosAsync();
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"No se pudo conectar a la base de datos: {ex.Message}";
+            esError = true;
+            pedidos = new List<Pedido>();
+        }
+    }
 
     private void NuevoPedido()
     {
