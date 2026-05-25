@@ -1,0 +1,51 @@
+@inherits LayoutComponentBase
+
+<div class="app-shell">
+    <!-- ── Sidebar ──────────────────────────────────────── -->
+    <nav class="sidebar">
+        <div class="sidebar-brand">
+            <span class="brand-icon">✏️</span>
+            <div>
+                <div class="brand-name">El Lápiz Feliz</div>
+                <div class="brand-sub">Papelería</div>
+            </div>
+        </div>
+
+        <ul class="nav-links">
+            <li>
+                <NavLink href="" Match="NavLinkMatch.All" class="nav-item">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Inicio</span>
+                </NavLink>
+            </li>
+            <li>
+                <NavLink href="catalogo" class="nav-item">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Catálogo</span>
+                </NavLink>
+            </li>
+            <li>
+                <NavLink href="clientes" class="nav-item">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Clientes</span>
+                </NavLink>
+            </li>
+            <li>
+                <NavLink href="pedidos" class="nav-item">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span>Pedidos</span>
+                </NavLink>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <span>Sistema de Gestión</span>
+            <span>v1.0</span>
+        </div>
+    </nav>
+
+    <!-- ── Main content ─────────────────────────────────── -->
+    <main class="main-content">
+        @Body
+    </main>
+</div>

@@ -1,0 +1,345 @@
+@page "/pedidos"
+@using PapeleriaBlazor.Services
+@using PapeleriaBlazor.Models
+@inject PedidoService PedidoSvc
+@inject ClienteService ClienteSvc
+@inject ApiComercioService ApiSvc
+
+<PageTitle>Pedidos — El Lápiz Feliz</PageTitle>
+
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Registro de Pedidos</h1>
+        <p class="page-subtitle">Integración BD propia + API del catálogo</p>
+    </div>
+    <button class="btn btn-primary" @onclick="NuevoPedido">
+        <i class="fa-solid fa-plus"></i> Nuevo Pedido
+    </button>
+</div>
+
+<!-- ── Alerta ──────────────────────────────────────────────────────── -->
+@if (!string.IsNullOrEmpty(mensaje))
+{
+    <div class="alert @(esError ? "alert-danger" : "alert-success")">
+        <i class="fa-solid @(esError ? "fa-circle-xmark" : "fa-circle-check")"></i>
+        @mensaje
+        <button class="alert-close" @onclick="() => mensaje = string.Empty">✕</button>
+    </div>
+}
+
+<!-- ── Formulario nuevo pedido ────────────────────────────────────── -->
+@if (mostrarFormulario)
+{
+    <div class="form-card">
+        <h2 class="form-title">
+            <i class="fa-solid fa-file-invoice"></i> Nuevo Pedido
+        </h2>
+
+        <div class="pedido-layout">
+            <!-- Columna izquierda: datos del pedido -->
+            <div class="pedido-datos">
+                <div class="form-group">
+                    <label>Cliente (BD propia) *</label>
+                    <select class="form-input" @bind="vm.ClienteId">
+                        <option value="0">-- Selecciona un cliente --</option>
+                        @if (clientes != null)
+                        {
+                            @foreach (var c in clientes)
+                            {
+                                <option value="@c.Id">@c.Nombre — @c.Telefono</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Estado del pedido</label>
+                    <select class="form-input" @bind="vm.Estado">
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Entregado">Entregado</option>
+                        <option value="Cancelado">Cancelado</option>
+                    </select>
+                </div>
+
+                <!-- Carrito actual -->
+                @if (vm.Items.Any())
+                {
+                    <div class="carrito">
+                        <h4>🛒 Carrito</h4>
+                        @foreach (var item in vm.Items)
+                        {
+                            <div class="carrito-item">
+                                <span class="item-name">@item.ProductoNombre</span>
+                                <div class="item-controls">
+                                    <button class="qty-btn" @onclick="() => DecrementarCantidad(item)">−</button>
+                                    <span class="item-qty">@item.Cantidad</span>
+                                    <button class="qty-btn" @onclick="() => IncrementarCantidad(item)">+</button>
+                                </div>
+                                <span class="item-price">$@item.Subtotal.ToString("N2")</span>
+                                <button class="btn btn-sm btn-danger-outline" @onclick="() => QuitarItem(item)">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        }
+                        <div class="carrito-total">
+                            <strong>Total: $@vm.Total.ToString("N2")</strong>
+                        </div>
+                    </div>
+                }
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" @onclick="GuardarPedido"
+                            disabled="@(vm.ClienteId == 0 || !vm.Items.Any())">
+                        <i class="fa-solid fa-floppy-disk"></i> Guardar Pedido
+                    </button>
+                    <button class="btn btn-ghost" @onclick="CancelarFormulario">Cancelar</button>
+                </div>
+            </div>
+
+            <!-- Columna derecha: catálogo de la API -->
+            <div class="pedido-catalogo">
+                <div class="catalogo-header">
+                    <h4><i class="fa-solid fa-satellite-dish"></i> Catálogo (API)</h4>
+                    <select class="select-sm" @onchange="FiltrarCategoriaPedido">
+                        <option value="0">Todas</option>
+                        @if (categorias != null)
+                        {
+                            @foreach (var cat in categorias)
+                            {
+                                <option value="@cat.Id">@cat.Nombre</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                @if (cargandoProductos)
+                {
+                    <div class="loading-mini">
+                        <div class="spinner spinner-sm"></div> Cargando productos...
+                    </div>
+                }
+                else if (productosApi == null)
+                {
+                    <p class="text-danger">No se pudo cargar el catálogo.</p>
+                }
+                else
+                {
+                    <div class="catalogo-lista">
+                        @foreach (var p in productosApi)
+                        {
+                            <div class="catalogo-item" @onclick="() => AgregarAlCarrito(p)">
+                                <div>
+                                    <strong>@p.Nombre</strong>
+                                    <small>@p.Descripcion</small>
+                                </div>
+                                <div class="catalogo-item-right">
+                                    <span class="price">$@p.Precio.ToString("N2")</span>
+                                    <button class="btn btn-sm btn-primary">+</button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ── Historial de pedidos ──────────────────────────────────────── -->
+<div class="section-divider">
+    <h2 class="section-title">Historial de Pedidos</h2>
+</div>
+
+@if (pedidos == null)
+{
+    <div class="loading-state">
+        <div class="spinner"></div><p>Cargando pedidos...</p>
+    </div>
+}
+else if (pedidos.Count == 0)
+{
+    <div class="empty-state">
+        <i class="fa-solid fa-inbox"></i>
+        <p>Sin pedidos registrados aún.</p>
+    </div>
+}
+else
+{
+    <div class="table-card">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
+                    <th>Productos</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in pedidos)
+                {
+                    <tr>
+                        <td><span class="id-badge">@p.Id</span></td>
+                        <td><strong>@p.Cliente?.Nombre</strong></td>
+                        <td>@p.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@p.Detalles.Count item(s)</td>
+                        <td><strong>$@p.Total.ToString("N2")</strong></td>
+                        <td>
+                            <span class="estado-badge @GetEstadoClass(p.Estado)">@p.Estado</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-danger-outline"
+                                    @onclick="() => ConfirmarEliminar(p)"
+                                    title="Eliminar pedido">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- ── Modal confirmación eliminación ─────────────────────────────── -->
+@if (pedidoAEliminar != null)
+{
+    <div class="modal-overlay" @onclick="CancelarEliminar">
+        <div class="modal-card" @onclick:stopPropagation="true">
+            <div class="modal-icon danger">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3>¿Eliminar pedido #@pedidoAEliminar.Id?</h3>
+            <p>Se eliminarán también todos sus detalles. Esta acción no se puede deshacer.</p>
+            <div class="modal-actions">
+                <button class="btn btn-danger" @onclick="EliminarPedido">Sí, eliminar</button>
+                <button class="btn btn-ghost" @onclick="CancelarEliminar">Cancelar</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Pedido>? pedidos;
+    private List<Cliente>? clientes;
+    private List<ProductoApi>? productosApi;
+    private List<ProductoApi>? todosProductos;
+    private List<CategoriaApi>? categorias;
+    private NuevoPedidoVm vm = new();
+    private bool mostrarFormulario = false;
+    private bool cargandoProductos = true;
+    private string mensaje = string.Empty;
+    private bool esError = false;
+    private Pedido? pedidoAEliminar;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarPedidos();
+        clientes      = await ClienteSvc.GetTodosAsync();
+        todosProductos = await ApiSvc.GetProductosAsync();
+        productosApi  = todosProductos;
+        categorias    = await ApiSvc.GetCategoriasAsync();
+        cargandoProductos = false;
+    }
+
+    private async Task CargarPedidos()
+        => pedidos = await PedidoSvc.GetTodosAsync();
+
+    private void NuevoPedido()
+    {
+        vm = new NuevoPedidoVm();
+        mostrarFormulario = true;
+        mensaje = string.Empty;
+    }
+
+    private void CancelarFormulario() => mostrarFormulario = false;
+
+    private void AgregarAlCarrito(ProductoApi p)
+    {
+        var existente = vm.Items.FirstOrDefault(i => i.ProductoApiId == p.Id);
+        if (existente != null)
+            existente.Cantidad++;
+        else
+            vm.Items.Add(new ItemCarrito
+            {
+                ProductoApiId  = p.Id,
+                ProductoNombre = p.Nombre,
+                Precio         = p.Precio,
+                Cantidad       = 1
+            });
+    }
+
+    private void IncrementarCantidad(ItemCarrito i) => i.Cantidad++;
+    private void DecrementarCantidad(ItemCarrito i)
+    {
+        if (i.Cantidad > 1) i.Cantidad--;
+        else vm.Items.Remove(i);
+    }
+    private void QuitarItem(ItemCarrito i) => vm.Items.Remove(i);
+
+    private async Task FiltrarCategoriaPedido(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString();
+        if (val == "0" || string.IsNullOrEmpty(val))
+        {
+            productosApi = todosProductos;
+            return;
+        }
+        if (int.TryParse(val, out int catId))
+        {
+            cargandoProductos = true;
+            productosApi = await ApiSvc.GetProductosPorCategoriaAsync(catId) ?? new();
+            cargandoProductos = false;
+        }
+    }
+
+    private async Task GuardarPedido()
+    {
+        if (vm.ClienteId == 0 || !vm.Items.Any()) return;
+        try
+        {
+            await PedidoSvc.CrearAsync(vm);
+            mensaje  = "✅ Pedido registrado correctamente.";
+            esError  = false;
+            mostrarFormulario = false;
+            vm = new NuevoPedidoVm();
+            await CargarPedidos();
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"Error al guardar: {ex.Message}";
+            esError = true;
+        }
+    }
+
+    private void ConfirmarEliminar(Pedido p) => pedidoAEliminar = p;
+    private void CancelarEliminar()          => pedidoAEliminar = null;
+
+    private async Task EliminarPedido()
+    {
+        if (pedidoAEliminar == null) return;
+        try
+        {
+            await PedidoSvc.EliminarAsync(pedidoAEliminar.Id);
+            mensaje = $"✅ Pedido #{pedidoAEliminar.Id} eliminado.";
+            esError = false;
+        }
+        catch (Exception ex)
+        {
+            mensaje = ex.Message;
+            esError = true;
+        }
+        pedidoAEliminar = null;
+        await CargarPedidos();
+    }
+
+    private string GetEstadoClass(string estado) => estado switch
+    {
+        "Entregado" => "estado-green",
+        "Cancelado" => "estado-red",
+        _           => "estado-amber"
+    };
+}

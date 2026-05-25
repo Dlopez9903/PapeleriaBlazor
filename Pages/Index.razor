@@ -1,0 +1,132 @@
+@page "/"
+@using PapeleriaBlazor.Services
+@using PapeleriaBlazor.Models
+@inject DashboardService DashboardSvc
+@inject ApiComercioService ApiSvc
+
+<PageTitle>Inicio — El Lápiz Feliz</PageTitle>
+
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Bienvenido al sistema de gestión</p>
+    </div>
+    <div class="header-date">@DateTime.Now.ToString("dddd, dd 'de' MMMM yyyy", new System.Globalization.CultureInfo("es-MX"))</div>
+</div>
+
+<!-- ── Tarjetas de estadísticas ─────────────────────────────────────── -->
+@if (stats == null)
+{
+    <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando estadísticas...</p>
+    </div>
+}
+else
+{
+    <div class="stats-grid">
+        <div class="stat-card stat-blue">
+            <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">@stats.TotalClientes</div>
+                <div class="stat-label">Clientes registrados</div>
+                <div class="stat-source">📁 Base de datos propia</div>
+            </div>
+        </div>
+
+        <div class="stat-card stat-amber">
+            <div class="stat-icon"><i class="fa-solid fa-cart-shopping"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">@stats.TotalPedidos</div>
+                <div class="stat-label">Pedidos totales</div>
+                <div class="stat-source">📁 Base de datos propia</div>
+            </div>
+        </div>
+
+        <div class="stat-card stat-green">
+            <div class="stat-icon"><i class="fa-solid fa-peso-sign"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">$@stats.TotalVentas.ToString("N2")</div>
+                <div class="stat-label">Ingresos totales</div>
+                <div class="stat-source">📁 Base de datos propia</div>
+            </div>
+        </div>
+
+        <div class="stat-card stat-red">
+            <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">@stats.PedidosPendientes</div>
+                <div class="stat-label">Pedidos pendientes</div>
+                <div class="stat-source">📁 Base de datos propia</div>
+            </div>
+        </div>
+
+        <!-- Dato de la API -->
+        <div class="stat-card stat-purple">
+            <div class="stat-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <div class="stat-info">
+                @if (totalProductosApi == null)
+                {
+                    <div class="stat-value">...</div>
+                    <div class="stat-label">Cargando catálogo...</div>
+                }
+                else
+                {
+                    <div class="stat-value">@totalProductosApi</div>
+                    <div class="stat-label">Productos en catálogo</div>
+                }
+                <div class="stat-source">🌐 API del profesor</div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ── Accesos rápidos ──────────────────────────────────────────────── -->
+<div class="quick-access">
+    <h2 class="section-title">Acceso rápido</h2>
+    <div class="quick-grid">
+        <a href="catalogo" class="quick-card">
+            <i class="fa-solid fa-boxes-stacked"></i>
+            <span>Ver Catálogo</span>
+            <small>Productos disponibles</small>
+        </a>
+        <a href="clientes" class="quick-card">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Gestión Clientes</span>
+            <small>Alta, edición y baja</small>
+        </a>
+        <a href="pedidos" class="quick-card">
+            <i class="fa-solid fa-file-invoice"></i>
+            <span>Nuevo Pedido</span>
+            <small>Registrar operación</small>
+        </a>
+    </div>
+</div>
+
+<!-- ── Mensaje de error API ─────────────────────────────────────────── -->
+@if (apiError)
+{
+    <div class="alert alert-warning">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        No se pudo conectar con la API del catálogo. El sistema opera normalmente con los datos locales.
+    </div>
+}
+
+@code {
+    private DashboardStats? stats;
+    private int? totalProductosApi;
+    private bool apiError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Datos de BD propia
+        stats = await DashboardSvc.GetStatsAsync();
+
+        // Dato de la API (número de productos disponibles)
+        var productos = await ApiSvc.GetProductosAsync();
+        if (productos != null)
+            totalProductosApi = productos.Count;
+        else
+            apiError = true;
+    }
+}

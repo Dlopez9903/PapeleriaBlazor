@@ -1,0 +1,146 @@
+@page "/catalogo"
+@using PapeleriaBlazor.Services
+@using PapeleriaBlazor.Models
+@inject ApiComercioService ApiSvc
+
+<PageTitle>Catálogo — El Lápiz Feliz</PageTitle>
+
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Catálogo de Productos</h1>
+        <p class="page-subtitle">Datos en tiempo real desde la API del catálogo</p>
+    </div>
+    <div class="api-badge">
+        <i class="fa-solid fa-satellite-dish"></i> API en vivo
+    </div>
+</div>
+
+<!-- ── Filtro por categoría ────────────────────────────────────────── -->
+<div class="filter-bar">
+    <div class="filter-group">
+        <label>Filtrar por categoría:</label>
+        <select class="select-input" @onchange="FiltrarPorCategoria">
+            <option value="0">Todas las categorías</option>
+            @if (categorias != null)
+            {
+                @foreach (var cat in categorias)
+                {
+                    <option value="@cat.Id">@cat.Nombre</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="filter-count">
+        @if (productosFiltrados != null)
+        {
+            <span>@productosFiltrados.Count producto(s) encontrado(s)</span>
+        }
+    </div>
+</div>
+
+<!-- ── Estado de carga ─────────────────────────────────────────────── -->
+@if (cargando)
+{
+    <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando catálogo...</p>
+    </div>
+}
+else if (errorApi)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-circle-xmark"></i>
+        No se pudo cargar el catálogo. Verifica tu conexión o intenta más tarde.
+        <button class="btn btn-sm btn-outline" @onclick="RecargarCatalogo">Reintentar</button>
+    </div>
+}
+else if (productosFiltrados != null && productosFiltrados.Count == 0)
+{
+    <div class="empty-state">
+        <i class="fa-solid fa-box-open"></i>
+        <p>No hay productos en esta categoría.</p>
+    </div>
+}
+else if (productosFiltrados != null)
+{
+    <!-- ── Grid de productos ─────────────────────────────────────────── -->
+    <div class="product-grid">
+        @foreach (var p in productosFiltrados)
+        {
+            <div class="product-card">
+                <div class="product-category-badge">@(p.CategoriaNombre ?? "General")</div>
+                <div class="product-icon">
+                    @GetIconoProducto(p.CategoriaNombre ?? "")
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">@p.Nombre</h3>
+                    <p class="product-desc">@p.Descripcion</p>
+                    <div class="product-footer">
+                        <span class="product-price">$@p.Precio.ToString("N2")</span>
+                        <span class="product-stock @(p.Stock > 0 ? "in-stock" : "out-stock")">
+                            @(p.Stock > 0 ? $"{p.Stock} pzs." : "Agotado")
+                        </span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<ProductoApi>? todos;
+    private List<ProductoApi>? productosFiltrados;
+    private List<CategoriaApi>? categorias;
+    private bool cargando = true;
+    private bool errorApi = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RecargarCatalogo();
+        categorias = await ApiSvc.GetCategoriasAsync();
+    }
+
+    private async Task RecargarCatalogo()
+    {
+        cargando = true;
+        errorApi = false;
+        todos = await ApiSvc.GetProductosAsync();
+        if (todos == null)
+            errorApi = true;
+        else
+            productosFiltrados = todos;
+        cargando = false;
+    }
+
+    private async Task FiltrarPorCategoria(ChangeEventArgs e)
+    {
+        var valor = e.Value?.ToString();
+        if (string.IsNullOrEmpty(valor) || valor == "0")
+        {
+            productosFiltrados = todos;
+            return;
+        }
+
+        if (int.TryParse(valor, out int catId))
+        {
+            cargando = true;
+            // Usa el segundo endpoint: /api/comercio/productos/categoria/{id}
+            var resultado = await ApiSvc.GetProductosPorCategoriaAsync(catId);
+            productosFiltrados = resultado ?? new List<ProductoApi>();
+            cargando = false;
+        }
+    }
+
+    private string GetIconoProducto(string categoria)
+    {
+        return categoria.ToLower() switch
+        {
+            var c when c.Contains("escolar") => "📚",
+            var c when c.Contains("oficina") => "🗂️",
+            var c when c.Contains("arte") => "🎨",
+            var c when c.Contains("tecnolog") => "💻",
+            var c when c.Contains("cuaderno") => "📓",
+            _ => "✏️"
+        };
+    }
+}
