@@ -88,6 +88,11 @@ else if (productosFiltrados != null)
 }
 
 @code {
+    private static readonly HashSet<string> CategoriasPapeleria = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Librería", "Papelería"
+    };
+
     private List<ProductoApi>? todos;
     private List<ProductoApi>? productosFiltrados;
     private List<CategoriaApi>? categorias;
@@ -96,11 +101,30 @@ else if (productosFiltrados != null)
 
     protected override async Task OnInitializedAsync()
     {
-        todos = await ApiSvc.GetProductosAsync();
-        if (todos != null)
+        await RecargarCatalogo();
+    }
+
+    private async Task RecargarCatalogo()
+    {
+        cargando = true;
+        errorApi = false;
+
+        var resultado = await ApiSvc.GetProductosAsync();
+
+        if (resultado == null)
         {
+            errorApi = true;
+        }
+        else
+        {
+            // Solo productos de categorías de papelería
+            todos = resultado
+                .Where(p => p.Categoria != null && CategoriasPapeleria.Contains(p.Categoria))
+                .ToList();
+
             productosFiltrados = todos;
-            // Extrae categorías únicas del listado
+
+            // Categorías únicas extraídas del listado filtrado
             categorias = todos
                 .Where(p => p.CategoriaId > 0 && p.Categoria != null)
                 .GroupBy(p => p.CategoriaId)
@@ -111,18 +135,7 @@ else if (productosFiltrados != null)
                 })
                 .ToList();
         }
-        else errorApi = true;
-    }
 
-    private async Task RecargarCatalogo()
-    {
-        cargando = true;
-        errorApi = false;
-        todos = await ApiSvc.GetProductosAsync();
-        if (todos == null)
-            errorApi = true;
-        else
-            productosFiltrados = todos;
         cargando = false;
     }
 
@@ -138,9 +151,13 @@ else if (productosFiltrados != null)
         if (int.TryParse(valor, out int catId))
         {
             cargando = true;
-            // Usa el segundo endpoint: /api/comercio/productos/categoria/{id}
             var resultado = await ApiSvc.GetProductosPorCategoriaAsync(catId);
-            productosFiltrados = resultado ?? new List<ProductoApi>();
+
+            // También filtra el resultado del endpoint por categorías de papelería
+            productosFiltrados = resultado?
+                .Where(p => p.Categoria != null && CategoriasPapeleria.Contains(p.Categoria))
+                .ToList() ?? new List<ProductoApi>();
+
             cargando = false;
         }
     }
@@ -149,12 +166,12 @@ else if (productosFiltrados != null)
     {
         return categoria.ToLower() switch
         {
-            var c when c.Contains("escolar") => "📚",
-            var c when c.Contains("oficina") => "🗂️",
+            var c when c.Contains("librería") || c.Contains("libreria") => "📚",
+            var c when c.Contains("papelería") || c.Contains("papeleria") => "✏️",
             var c when c.Contains("arte") => "🎨",
-            var c when c.Contains("tecnolog") => "💻",
-            var c when c.Contains("cuaderno") => "📓",
-            _ => "✏️"
+            var c when c.Contains("escolar") => "🎒",
+            var c when c.Contains("oficina") => "🗂️",
+            _ => "📝"
         };
     }
 }

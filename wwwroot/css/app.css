@@ -48,43 +48,44 @@ body {
 }
 a { text-decoration: none; color: inherit; }
 
-/* ── App Shell ─────────────────────────────────────────────── */
+/* ── App Shell ─────────────────────────────────────────── */
 .app-shell {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
 }
 
-/* ── Sidebar ────────────────────────────────────────────────── */
-.sidebar {
-  width: var(--sidebar-w);
-  min-height: 100vh;
+/* ── Topbar ─────────────────────────────────────────────── */
+.topbar {
+  width: 100%;
   background: var(--ink);
   display: flex;
-  flex-direction: column;
-  padding: 0;
-  position: fixed;
-  top: 0; left: 0;
+  align-items: center;
+  padding: 0 32px;
+  height: 64px;
+  position: sticky;
+  top: 0;
   z-index: 100;
-  box-shadow: 4px 0 20px rgba(0,0,0,.2);
+  box-shadow: 0 2px 16px rgba(0,0,0,.25);
+  gap: 32px;
 }
 
-.sidebar-brand {
+.topbar-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 28px 22px 24px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
+  gap: 10px;
+  flex-shrink: 0;
 }
-.brand-icon { font-size: 2rem; }
+.brand-icon { font-size: 1.6rem; }
 .brand-name {
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--amber);
-  line-height: 1.2;
+  line-height: 1.1;
 }
 .brand-sub {
-  font-size: .72rem;
+  font-size: .65rem;
   color: var(--parchment);
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -92,21 +93,25 @@ a { text-decoration: none; color: inherit; }
 
 .nav-links {
   list-style: none;
-  padding: 16px 0;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  padding: 0;
   flex: 1;
 }
-.nav-links li { margin: 2px 10px; }
+.nav-links li { margin: 0; }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 11px 14px;
+  gap: 8px;
+  padding: 8px 16px;
   border-radius: 8px;
   color: var(--parchment);
-  font-size: .92rem;
+  font-size: .9rem;
   font-weight: 400;
   transition: background .18s, color .18s;
+  white-space: nowrap;
 }
 .nav-item:hover {
   background: rgba(200,121,65,.15);
@@ -117,15 +122,19 @@ a { text-decoration: none; color: inherit; }
   color: #fff;
   font-weight: 600;
 }
-.nav-item i { width: 18px; text-align: center; }
+.nav-item i { font-size: .9rem; }
 
-.sidebar-footer {
-  padding: 16px 22px;
-  border-top: 1px solid rgba(255,255,255,.08);
-  display: flex;
-  justify-content: space-between;
+.topbar-version {
   font-size: .72rem;
   color: rgba(255,255,255,.3);
+  flex-shrink: 0;
+}
+
+/* ── Main Content ───────────────────────────────────────── */
+.main-content {
+  margin-left: 0;
+  flex: 1;
+  padding: 32px 36px;
 }
 
 /* ── Main Content ───────────────────────────────────────────── */
