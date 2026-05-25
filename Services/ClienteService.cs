@@ -42,10 +42,14 @@ public class ClienteService
     /// </summary>
     public async Task EliminarAsync(int id)
     {
-        var tienePedidos = await _db.Pedidos.AnyAsync(p => p.ClienteId == id);
-        if (tienePedidos)
+        // Solo bloquea si tiene pedidos Pendientes — Entregados y Cancelados sí permiten eliminar
+        var tienePedidosPendientes = await _db.Pedidos
+            .AnyAsync(p => p.ClienteId == id && p.Estado == "Pendiente");
+
+        if (tienePedidosPendientes)
             throw new InvalidOperationException(
-                "No se puede eliminar el cliente porque tiene pedidos registrados.");
+                "No se puede eliminar el cliente porque tiene pedidos pendientes. " +
+                "Primero marca todos sus pedidos como Entregados o Cancelados.");
 
         var cliente = await _db.Clientes.FindAsync(id)
             ?? throw new KeyNotFoundException($"Cliente {id} no encontrado.");

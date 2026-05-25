@@ -63,14 +63,10 @@ public class DetallePedido
     [ForeignKey(nameof(PedidoId))]
     public Pedido? Pedido { get; set; }
 
-    /// <summary>
-    /// Id del producto que viene de la API del profesor — NO se guarda el catálogo aquí
-    /// </summary>
+
     public int ProductoApiId { get; set; }
 
-    /// <summary>
-    /// Se guarda el nombre para mostrar en historial aunque la API cambie
-    /// </summary>
+
     [StringLength(150)]
     public string ProductoNombre { get; set; } = string.Empty;
 
