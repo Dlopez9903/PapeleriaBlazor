@@ -508,6 +508,33 @@ a { text-decoration: none; color: inherit; }
 .estado-amber  { background: var(--amber-pale);  color: var(--amber-dark); }
 .estado-red    { background: var(--red-pale);    color: var(--red); }
 
+.estado-select {
+    border: none;
+    border-radius: 12px;
+    padding: 3px 10px;
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    cursor: pointer;
+    appearance: auto;
+}
+
+    .estado-select.estado-green {
+        background: var(--green-pale);
+        color: var(--green);
+    }
+
+    .estado-select.estado-amber {
+        background: var(--amber-pale);
+        color: var(--amber-dark);
+    }
+
+    .estado-select.estado-red {
+        background: var(--red-pale);
+        color: var(--red);
+    }
+
 /* ── Alerts ─────────────────────────────────────────────────── */
 .alert {
   display: flex;
