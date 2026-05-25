@@ -97,10 +97,14 @@ public class ProductoApi
     public decimal Precio { get; set; }
     public int Stock { get; set; }
     public int CategoriaId { get; set; }
-    public string? CategoriaNombre { get; set; }
-    public string? ImagenUrl { get; set; }
-}
+    public string? Categoria { get; set; }      // ← viene como string directo
+    public string? Proveedor { get; set; }       // ← campo extra que sí existe
+    public int ProveedorId { get; set; }
 
+    // Alias para compatibilidad con el código que usa CategoriaNombre
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string? CategoriaNombre => Categoria;
+}
 /// <summary>
 /// Mapea la respuesta de GET /api/comercio/categorias
 /// </summary>
