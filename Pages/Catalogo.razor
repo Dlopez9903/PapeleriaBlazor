@@ -96,8 +96,22 @@ else if (productosFiltrados != null)
 
     protected override async Task OnInitializedAsync()
     {
-        await RecargarCatalogo();
-        categorias = await ApiSvc.GetCategoriasAsync();
+        todos = await ApiSvc.GetProductosAsync();
+        if (todos != null)
+        {
+            productosFiltrados = todos;
+            // Extrae categorías únicas del listado
+            categorias = todos
+                .Where(p => p.CategoriaId > 0 && p.Categoria != null)
+                .GroupBy(p => p.CategoriaId)
+                .Select(g => new CategoriaApi
+                {
+                    Id = g.Key,
+                    Nombre = g.First().Categoria!
+                })
+                .ToList();
+        }
+        else errorApi = true;
     }
 
     private async Task RecargarCatalogo()
