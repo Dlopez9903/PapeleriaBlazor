@@ -117,15 +117,21 @@ else
     private int? totalProductosApi;
     private bool apiError = false;
 
+    private static readonly HashSet<string> CategoriasPapeleria = new(StringComparer.OrdinalIgnoreCase)
+{
+    "Librería", "Papelería"
+};
+
     protected override async Task OnInitializedAsync()
     {
         // Datos de BD propia
         stats = await DashboardSvc.GetStatsAsync();
 
-        // Dato de la API (número de productos disponibles)
+        // Dato de la API (solo productos de papelería)
         var productos = await ApiSvc.GetProductosAsync();
         if (productos != null)
-            totalProductosApi = productos.Count;
+            totalProductosApi = productos
+                .Count(p => p.Categoria != null && CategoriasPapeleria.Contains(p.Categoria));
         else
             apiError = true;
     }
