@@ -188,7 +188,13 @@ else
                         <td>@p.Detalles.Count item(s)</td>
                         <td><strong>$@p.Total.ToString("N2")</strong></td>
                         <td>
-                            <span class="estado-badge @GetEstadoClass(p.Estado)">@p.Estado</span>
+                            <select class="estado-select @GetEstadoClass(p.Estado)"
+                                    value="@p.Estado"
+                                    @onchange="async e => await CambiarEstado(p.Id, e.Value?.ToString() ?? p.Estado)">
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Entregado">Entregado</option>
+                                <option value="Cancelado">Cancelado</option>
+                            </select>
                         </td>
                         <td>
                             <button class="btn btn-sm btn-danger-outline"
@@ -276,6 +282,22 @@ else
         catch { }
 
         cargandoProductos = false;
+    }
+
+    private async Task CambiarEstado(int pedidoId, string nuevoEstado)
+    {
+        try
+        {
+            await PedidoSvc.CambiarEstadoAsync(pedidoId, nuevoEstado);
+            mensaje = "✅ Estado actualizado.";
+            esError = false;
+            await CargarPedidos();
+        }
+        catch (Exception ex)
+        {
+            mensaje = ex.Message;
+            esError = true;
+        }
     }
 
     private async Task CargarPedidos()
