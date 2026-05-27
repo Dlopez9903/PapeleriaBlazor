@@ -9,7 +9,7 @@
 
 ---
 
-## 🌐 API del profesor consumida
+##  API 
 
 **Base URL:** `https://api-udec-pweb.azurewebsites.net`
 
@@ -21,7 +21,7 @@
 
 ---
 
-## 🗂️ Estructura del proyecto
+##  Estructura del proyecto
 
 ```
 PapeleriaBlazor/
@@ -50,54 +50,21 @@ PapeleriaBlazor/
 
 ---
 
-## 🔧 Configuración antes de correr
-
-### 1. Base de datos Azure SQL
-
-Edita `appsettings.json` y reemplaza los valores:
-
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=TU_SERVIDOR.database.windows.net;Database=PapeleriaDB;User Id=TU_USUARIO;Password=TU_PASSWORD;Encrypt=True;"
-  }
-}
-```
-
-### 2. Migrations (primera vez)
-
-```bash
-dotnet ef migrations add InitialCreate
-dotnet ef database update
-```
-
-Esto crea las 3 tablas: **Clientes**, **Pedidos**, **DetallesPedido**.
-
-### 3. Correr el proyecto
-
-```bash
-dotnet run
-```
-
----
-
-## 🗃️ Modelo de base de datos
+##  Modelo de base de datos
 
 ```
 Clientes (1) ──────< (N) Pedidos (1) ──────< (N) DetallesPedido
    Id                        Id                       Id
    Nombre                    ClienteId (FK)           PedidoId (FK)
-   Telefono                  Fecha                    ProductoApiId  ← Id de la API
+   Telefono                  Fecha                    ProductoApiId 
    Email                     Total                    ProductoNombre
    FechaRegistro             Estado                   Cantidad
                                                       Precio
 ```
 
-> **Nota:** `ProductoApiId` referencia el `Id` del producto que viene de la API del profesor. Los datos maestros del catálogo NO se duplican en la BD local.
-
 ---
 
-## 📱 Pantallas del sistema
+##  Pantallas del sistema
 
 | # | Pantalla | Ruta | Descripción |
 |---|---|---|---|
@@ -108,6 +75,6 @@ Clientes (1) ──────< (N) Pedidos (1) ──────< (N) Detalle
 
 ---
 
-## 🤖 Declaratoria de uso de IA
+##  Declaratoria de uso de IA
 
 Herramienta utilizada: **Claude (Anthropic)** **Gemini**
