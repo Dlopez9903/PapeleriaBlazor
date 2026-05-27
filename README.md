@@ -110,7 +110,4 @@ Clientes (1) ──────< (N) Pedidos (1) ──────< (N) Detalle
 
 ## 🤖 Declaratoria de uso de IA
 
-Herramienta utilizada: **Claude (Anthropic)**  
-Uso: Generación de la estructura base del proyecto, modelos, servicios y CSS.  
-Contribución personal: Configuración de Azure SQL, connection string, migraciones, commits incrementales, ajustes de lógica de negocio y comprensión total del código para la defensa oral.  
-Enlace de conversación: *(agregar enlace de esta conversación)*
+Herramienta utilizada: **Claude (Anthropic)** **Gemini**
