@@ -21,8 +21,14 @@
 ---
 
 ##  Pantallas del sistema
+##  Dashboard
 <img width="2868" height="1799" alt="image" src="https://github.com/user-attachments/assets/b9402921-4d73-4830-81fe-c63526bf1c31" />
-
+##  Catalogo
+<img width="2879" height="1797" alt="image" src="https://github.com/user-attachments/assets/99b081ea-8875-428a-8ae7-be470980a08a" />
+##  Clientes
+<img width="2879" height="1799" alt="image" src="https://github.com/user-attachments/assets/f44c6655-0430-4b2b-ba30-066c90bfcfe9" />
+##  Pedidos
+<img width="2879" height="1799" alt="image" src="https://github.com/user-attachments/assets/09412505-b795-4c80-9475-f743d65bf2f0" />
 
 ---
 
