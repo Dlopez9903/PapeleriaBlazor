@@ -9,6 +9,11 @@
 
 ---
 
+##  URL de la API consumida
+https://api-udec-pweb-aedec9hxbugye0am.westus3-01.azurewebsites.net
+
+---
+
 ##  Pantallas del sistema
 
 | # | Pantalla | Ruta | Descripción |
@@ -35,3 +40,5 @@
 ##  Declaratoria de uso de IA
 
 Herramienta utilizada: **Claude (Anthropic)** **Gemini**
+https://gemini.google.com/share/b73d137195f8
+https://gemini.google.com/share/51212e910c9e
