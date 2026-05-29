@@ -20,6 +20,12 @@
 
 ---
 
+##  Pantallas del sistema
+<img width="2868" height="1799" alt="image" src="https://github.com/user-attachments/assets/b9402921-4d73-4830-81fe-c63526bf1c31" />
+
+
+---
+
 ##  Declaratoria de uso de IA
 
 Herramienta utilizada: **Claude (Anthropic)** **Gemini**
